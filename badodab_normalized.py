@@ -20,18 +20,45 @@ def badodab_step(p,q,xi,grad_eval,dt,epsilon,beta,gamma):
     p_new = p_hat - 0.5 * dt * grad_eval(q_new)
     return (p_new,q_new,xi_new)
 
+def sample_invariant_measure_rejection(mult,mu,sigma,U):
+    Z = np.sum(np.exp(-U(np.linspace(-2,2,1000))) * 4/1000)
+    p = np.random.normal(0,1)
+    xi = np.random.normal(0,1)
+    while True :
+        q = np.random.normal(mu,sigma)
+        u = np.random.uniform()
+        y = mult * 1/(np.sqrt(2 * np.pi)*sigma) * np.exp(-(q-mu)**2 /(2*sigma**2))
+        if y*u < np.exp(-U(q))/Z:
+            return (p,q,xi)
+
+
+# validation rejection sampling
+mu = -0.4
+sigma = 1
+mult = 2.5
+
+qs = np.empty(100000)
+for i in range(100000):
+    p,q,xi = sample_invariant_measure_rejection(mult,mu,sigma,U)
+    qs[i] = q
+
+plt.hist(qs,bins=100,density=True)
+plt.plot(np.linspace(-2,2,100),np.exp(-U(np.linspace(-2,2,100)))/Z,"r")
+plt.show()
+
+#
 
 K = 100_000
 dt = 2e-2
 epsilon = 1
-beta = 0.5
+beta = 10
 gamma = 1
 
 def U(q):
     return (q**2 - 1)**2 + 0.5 * q
 
 def gradU(q):
-    return 4 * q**3 + 4*q - 0.5
+    return 4 * q**3 - 4*q + 0.5
 
 p0 = np.array([0])
 q0 = np.array([0])
