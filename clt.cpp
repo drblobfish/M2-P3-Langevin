@@ -6,49 +6,25 @@
 #include <random>
 #include <numbers>
 
-double dt = 2e-3;
+double dt = 1e-1;
 double epsilon = 1;
 double beta = 1;
 double _gamma = 1;
-
-uint32_t K = 100000;
-const uint32_t N = 100;
-const uint32_t nb_epsilon = 10;
-const uint32_t nb_gamma = 10;
+std::vector<double> Ts = {5.0,7.5,10.0,50.0};
+const uint32_t N = 50000;
+uint32_t K = 0;
+uint32_t K_max = 1000;
 
 double integration_res[N*5] = {0};
-
-double epsilon_max = 10;
-double epsilon_min = 1e-2;
-double epsilon_res[nb_epsilon];
-double variance_res_epsilon_var[nb_epsilon*5];
-
-double gamma_max = 1e2;
-double gamma_min = 1e-4;
-double gamma_res[nb_gamma];
-double variance_res_gamma_var[nb_gamma*5];
 
 const double rs_mult = 5.2;
 const double rs_mu = -0.5;
 const double rs_sigma = 1;
 
-std::vector<double> Ts = {5.0,7.5,10.0,50.0};
-const uint32_t Kmax = 1000;
-const uint32_t N_CLT = 500000;
-const double dt_CLT = 1e-1;
-
 std::random_device rd{};
 std::mt19937 gen{rd()};
 std::normal_distribution sample_gaussian {};
 std::uniform_real_distribution sample_uniform {};
-
-void geomspace(double a, double b, uint32_t N, double* vals){
-        double r = std::exp((std::log(b) - std::log(a))/(N-1));
-        vals[0] = a;
-        for (uint32_t i = 1; i<N; i++){
-                vals[i] = vals[i-1] * r;
-        }
-}
 
 double U(double q){
         double tmp = q*q - 1;
@@ -117,6 +93,9 @@ void badodab_variance_mean(double *means, double *variances){
                 variances[j] = 0;
         }
         for (uint32_t i = 0; i<N; i++){
+                if (i % 1000 == 0){
+                        std::cout << "variance estimation ("<< 100 * i / N<<"%)\n";
+                }
                 double p0;
                 double q0;
                 double xi0;
@@ -140,45 +119,29 @@ void badodab_variance_mean(double *means, double *variances){
         }
 }
 
-void dump_results(){
-        std::ofstream f1("exp1_epsilon.csv");
-        f1 << "epsilon,p,q,xi,q^2,xi^2\n";
-        for (uint32_t i = 0; i<nb_epsilon;i++){
-                f1 << epsilon_res[i];
-                for (uint32_t j = 0; j<5;j++){
-                        f1 << "," << variance_res_epsilon_var[i*5 + j];
-                }
-                f1 << "\n";
-        }
-        std::ofstream f2("exp2_gamma.csv");
-        f2 << "gamma,p,q,xi,q^2,xi^2\n";
-        for (uint32_t i = 0; i<nb_gamma;i++){
-                f2 << gamma_res[i];
-                for (uint32_t j = 0; j<5;j++){
-                        f2 << "," << variance_res_gamma_var[i*5 + j];
-                }
-                f2 << "\n";
-        }
-}
-
 int main(){
-        double means[5];
-        geomspace(epsilon_min,epsilon_max,nb_epsilon,epsilon_res);
-        geomspace(gamma_min,gamma_max,nb_gamma,gamma_res);
-        // experiment 1
-        _gamma = 1;
-        for (uint32_t i = 0; i<nb_epsilon;i++){
-                std::cout << "Experiment 1 ( gamma = " << _gamma << ", epsilon = " << epsilon << ") \n";
-                epsilon = epsilon_res[i];
-                badodab_variance_mean(means,variance_res_epsilon_var+i*5);
+        double var[5] = {0};
+        double means[5] = {0};
+        K = K_max;
+        badodab_variance_mean(means,var);
+        std::ofstream f_var("exp_clt_var.txt");
+        f_var << var[1] << "\n" << var[3] << "\n";
+
+        std::ofstream f_clt("exp_clt.csv");
+        f_clt << "T,var,err\n";
+        for (double T : Ts){
+                std::cout << "exp T="<<T<<"\n";
+                K = (uint32_t) T/dt;
+                for (uint32_t i = 0; i<N; i++){
+                        double p0;
+                        double q0;
+                        double xi0;
+                        double integral[5] = {0};
+                        sample_invariant_measure_rejection(&p0,&q0,&xi0);
+                        badodab_integrate_all(p0,q0,xi0,integral);
+                        f_clt << T << ",q," << std::sqrt(T/var[1])*(integral[1]-means[1]) << "\n";
+                        f_clt << T << ",q²," << std::sqrt(T/var[3])*(integral[3]-means[3]) << "\n";
+                }
         }
-        // experiment 2
-        epsilon = 1;
-        for (uint32_t i = 0; i<nb_gamma;i++){
-                std::cout << "Experiment 2 ( gamma = " << _gamma << ", epsilon = " << epsilon << ") \n";
-                _gamma = gamma_res[i];
-                badodab_variance_mean(means,variance_res_gamma_var+i*5);
-        }
-        dump_results();
         return 0;
 }
