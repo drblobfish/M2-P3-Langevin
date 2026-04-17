@@ -139,8 +139,8 @@ int main(){
                         double integral[5] = {0};
                         sample_invariant_measure_rejection(&p0,&q0,&xi0);
                         badodab_integrate_all(p0,q0,xi0,integral);
-                        f_clt << T << ",q," << std::sqrt(T/var[1])*(integral[1]-means[1]) << "\n";
-                        f_clt << T << ",q²," << std::sqrt(T/var[3])*(integral[3]-means[3]) << "\n";
+                        f_clt << T << ",q," << std::sqrt(T)*(integral[1]-means[1]) << "\n";
+                        f_clt << T << ",q²," << std::sqrt(T)*(integral[3]-means[3]) << "\n";
                 }
         }
         return 0;
