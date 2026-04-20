@@ -104,14 +104,14 @@ def exp1(N):
     return integrals_q,integrals_q2
 
 @njit
-def exp2():
+def exp2(q0):
     cum_mean = np.empty((3,100))
     avg_lik = np.empty((3,100))
     for i in range(3):
         nu = nus_exp2[i]
         zeta = 0
         p = np.random.normal(0,1,n_components)
-        q = np.zeros(n_components)
+        q = q0.copy()
         q_int = 0
         lik_int = 0
         for j in range(10_000):
@@ -129,7 +129,10 @@ integrate_q(1)
 exp1(1)
 print("jit compilation done")
 
-integrals_q,integrals_q2 = exp1(100)
+
+q0,_ = integrate_q(10_000)
+
+integrals_q,integrals_q2 = exp1(1000)
 
 fig,axs = plt.subplots(1,2,figsize=(10,5))
 emp_mean_q = np.mean(integrals_q[2])
@@ -138,7 +141,7 @@ rescaled_q = ((np.sqrt(K_exp1*dt*1e-2/ emp_var_q)) * (integrals_q.T - emp_mean_q
 for i in range(3):
     axs[0].hist(rescaled_q[i],density=True,alpha=0.8)
 x = np.linspace(-4,4)
-axs[0].plot(x,(1/np.sqrt(2 * np.pi))*np.exp(-x**2/2))
+axs[0].plot(x,(1/np.sqrt(2 * np.pi))*np.exp(-x**2/2),"k")
 axs[0].set_title("A")
 axs[0].set_ylabel("EPDF")
 axs[0].set_xlabel("Error")
@@ -147,9 +150,9 @@ emp_mean_q2 = np.mean(integrals_q2[2])
 emp_var_q2 = np.var(integrals_q2[2])
 rescaled_q2 = ((np.sqrt(K_exp1*dt*1e-2/ emp_var_q2)) * (integrals_q2.T - emp_mean_q2)).T
 for i in range(3):
-    axs[1].hist(rescaled_q2[i],density=True,alpha=0.8)
+    axs[1].hist(rescaled_q2[i],density=True,alpha=0.7)
 x = np.linspace(-4,4)
-axs[1].plot(x,(1/np.sqrt(2 * np.pi))*np.exp(-x**2/2))
+axs[1].plot(x,(1/np.sqrt(2 * np.pi))*np.exp(-x**2/2),"k")
 axs[1].set_title("B")
 axs[1].set_xlabel("Error")
 fig.savefig("fig/error_appl.pdf")
@@ -157,4 +160,10 @@ fig.savefig("fig/error_appl.png")
 plt.show()
 
 
-# cum_mean,avg_lik = exp2()
+cum_mean,avg_lik = exp2(q0)
+plt.plot(cum_mean.T)
+plt.show()
+
+plt.plot(avg_lik.T)
+plt.show()
+
