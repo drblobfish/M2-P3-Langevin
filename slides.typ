@@ -216,7 +216,58 @@ $
 ==
 
 #figure(
+  image("fig/epdf.pdf",width:70%),
+  caption : [Empirical distribution of rescaled residual error at different times])
+
+== Application to Bayesian Logistic Regression with a Stochastic gradient
+
+Observation : $y_j in {0,1}$, $x_j in RR^d$ for $j in [0,tilde(N)]$
+
+Parameter : $q in RR^d$
+
+Prior : $q ~ cal(N)(0,sigma^2)$ i.e. $p_0(q) prop exp(- (|q|^2)/sigma)$
+
+Likelihood : $p((y_j),(x_j) | q) = limits(product)_j (exp(y_j <x_j, q>))/(1 + exp(<x_j, q>))$
+
+Posterior : $p(q | (y_j) , (x_j)) prop p_0(q) space p((y_j),(x_j) | q)$
+
+==
+
+If we choose $-nabla U(q) = nabla log(p_0(q)) + nabla log(p((y_j),(x_j) | q))$
+
+Then, the invariant distribution is the posterior distribution
+
+$
+pi(dif q) prop exp(-U(q)) dif q prop p(q | y_j , x_j) dif q
+$
+
+$- nabla U(q)$ expensive to compute : use of a stochastic gradient
+
+$
+- tilde(nabla)U = nabla log(p_0(q)) + tilde(N)/m sum_(j in B) nabla log(p(y_j,x_j | q))
+$
+
+With $B$ a random batch of size $m$ of observations
+
+==
+
+Application to MNIST dataset, projected on a smaller space using a Principal Component Analysis
+
+#figure(
+  image("fig/pca_example.pdf",width:100%),
+  caption : [Examples of images from the MNIST dataset and their projection on the 100 principal components])
+
+
+==
+
+#figure(
   image("fig/error_appl.pdf",width:80%),
-  caption : [Empirical distribution of error (Right : $q$, Left : $q^2$)])
+  caption : [Empirical distribution of error (Right : $q_65$, Left : $q_65^2$)])
+
+==
+
+#figure(
+  image("fig/time_evolution.pdf",width:80%),
+  caption : [Evolution of $EE(q_65)$ and of the average likelihood over time])
 
 #bibliography("refs.bib",title : none)

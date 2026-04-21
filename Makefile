@@ -5,4 +5,4 @@ main:
 
 
 clt :
-	g++ clt.cpp -o clt.exe -ggdb
+	g++ clt.cpp -o clt.exe -ggdb -O3

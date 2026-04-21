@@ -11,7 +11,7 @@ double epsilon = 1;
 double beta = 1;
 double _gamma = 1;
 std::vector<double> Ts = {5.0,7.5,10.0,50.0};
-const uint32_t N = 50000;
+const uint32_t N = 500000;
 uint32_t K = 0;
 uint32_t K_max = 1000;
 
@@ -125,10 +125,11 @@ int main(){
         K = K_max;
         badodab_variance_mean(means,var);
         std::ofstream f_var("exp_clt_var.txt");
+        f_var << means[1] << "\n" << means[3] << "\n";
         f_var << var[1] << "\n" << var[3] << "\n";
 
         std::ofstream f_clt("exp_clt.csv");
-        f_clt << "T,var,err\n";
+        f_clt << "T,var,val\n";
         for (double T : Ts){
                 std::cout << "exp T="<<T<<"\n";
                 K = (uint32_t) T/dt;
@@ -139,8 +140,8 @@ int main(){
                         double integral[5] = {0};
                         sample_invariant_measure_rejection(&p0,&q0,&xi0);
                         badodab_integrate_all(p0,q0,xi0,integral);
-                        f_clt << T << ",q," << std::sqrt(T)*(integral[1]-means[1]) << "\n";
-                        f_clt << T << ",q²," << std::sqrt(T)*(integral[3]-means[3]) << "\n";
+                        f_clt << T << ",q," << integral[1] << "\n";
+                        f_clt << T << ",q²," << integral[3] << "\n";
                 }
         }
         return 0;

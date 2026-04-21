@@ -39,16 +39,17 @@ train_images_lowdim = pca.transform(train_images.reshape(N_obs,-1))
 test_images_lowdim = pca.transform(test_images.reshape(test_images.shape[0],-1))
 
 
-# # replicating fig 4 to test pca
-# nb_number_plot = 10
-# a = pca.inverse_transform(pca.transform(test_images.reshape(N_obs,-1)[:nb_number_plot])).reshape(nb_number_plot,28,28)
-# 
-# fig,axs = plt.subplots(2,nb_number_plot)
-# for i in range(nb_number_plot):
-#     axs[0,i].imshow(test_images[i],cmap='gray')
-#     axs[1,i].imshow(a[i],cmap='gray')
-# plt.show()
-# 
+# replicating fig 4 to test pca
+nb_number_plot = 10
+a = pca.inverse_transform(pca.transform(test_images.reshape(test_images.shape[0],-1)[:nb_number_plot])).reshape(nb_number_plot,28,28)
+
+fig,axs = plt.subplots(2,nb_number_plot,figsize=(10,2))
+for i in range(nb_number_plot):
+    axs[0,i].imshow(test_images[i],cmap='gray')
+    axs[1,i].imshow(a[i],cmap='gray')
+fig.savefig("fig/pca_example.pdf")
+plt.show()
+
 
 @njit(inline="always")
 def gradLLik(q):
@@ -161,9 +162,17 @@ plt.show()
 
 
 cum_mean,avg_lik = exp2(q0)
-plt.plot(cum_mean.T)
-plt.show()
 
-plt.plot(avg_lik.T)
+fig,ax = plt.subplots(1,2,figsize=(10,5),layout="constrained")
+ax[0].plot(cum_mean.T)
+ax[0].set_xlabel("Time T")
+ax[0].set_ylabel("Cumulative Mean")
+ax[0].set_title("A")
+ax[1].plot(avg_lik.T,label=["$\\nu = 1$","$\\nu = 10$","$\\nu = 100$"])
+ax[1].set_xlabel("Time T")
+ax[1].set_ylabel("Average Likelihood")
+ax[1].set_title("B")
+ax[1].legend()
+fig.savefig("fig/time_evolution.pdf")
 plt.show()
 
